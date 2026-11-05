@@ -1,28 +1,18 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Plus, Minus, Trash2, Truck, Store, ArrowLeft, LogOut } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Truck, Store, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../context/ProductContext';
 
 export default function ClientCatalog() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { productos } = useProducts();
 
-  // Lista de Productos del Catálogo
-  const [productos] = useState([
-    { id: 1, nombre: 'Flat White Doble', categoria: 'CAFE', precio: 4.50, desc: 'Doble shot de espresso de especialidad con leche texturizada.' },
-    { id: 2, nombre: 'Cold Brew Radio', categoria: 'CAFE', precio: 5.00, desc: 'Extracción en frío de 18 hrs con notas cítricas y dulces.' },
-    { id: 3, nombre: 'Croissant Mantequilla', categoria: 'PASTELERIA', precio: 3.50, desc: 'Clásico hojaldre francés recién horneado.' },
-    { id: 4, nombre: 'Combo Desayuno Sintonía', categoria: 'COMBO', precio: 12.00, desc: 'Café a elección + Sandwich de jamón artesanal + Jugo natural.' },
-    { id: 5, nombre: 'Bolsa Café en Grano 250g', categoria: 'CAFE', precio: 18.00, desc: 'Granos selección especial origen Villa Rica.' },
-    { id: 6, nombre: 'Cheesecake Frutos Rojos', categoria: 'PASTELERIA', precio: 6.50, desc: 'Cremoso pastel con mermelada artesanal.' }
-  ]);
-
-  // Estado del Carrito
   const [cart, setCart] = useState([]);
   const [tipoEntrega, setTipoEntrega] = useState('DELIVERY');
   const [direccion, setDireccion] = useState('');
 
-  // Agregar al Carrito
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
@@ -32,7 +22,6 @@ export default function ClientCatalog() {
     }
   };
 
-  // Modificar Cantidad
   const updateQuantity = (id, delta) => {
     setCart(cart.map(item => {
       if (item.id === id) {
@@ -43,26 +32,21 @@ export default function ClientCatalog() {
     }));
   };
 
-  // Eliminar del Carrito
   const removeFromCart = (id) => {
     setCart(cart.filter(item => item.id !== id));
   };
 
-  // Cierre de sesión seguro
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  // Cálculos de Totales y Regla de Envío Gratis (Subtotal >= $50)
   const subtotal = cart.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
   const costoEnvio = (tipoEntrega === 'DELIVERY') ? (subtotal >= 50.00 ? 0.00 : 5.00) : 0.00;
   const total = subtotal + costoEnvio;
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] text-[#2C221E]">
-      
-      {/* NAVBAR CLIENTE */}
       <header className="bg-[#E05600] text-white px-8 py-4 flex items-center justify-between shadow-md sticky top-0 z-20">
         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/')}>
           <img 
@@ -74,21 +58,16 @@ export default function ClientCatalog() {
           <span className="font-extrabold text-xl tracking-wider uppercase">RadioCafé</span>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={handleLogout}
-            className="flex items-center space-x-1.5 text-xs font-bold bg-black/20 hover:bg-black/40 px-3.5 py-2 rounded-full transition-all"
-          >
-            <LogOut size={14} />
-            <span>Cerrar Sesión</span>
-          </button>
-        </div>
+        <button 
+          onClick={handleLogout}
+          className="flex items-center space-x-1.5 text-xs font-bold bg-black/20 hover:bg-black/40 px-3.5 py-2 rounded-full transition-all"
+        >
+          <LogOut size={14} />
+          <span>Cerrar Sesión</span>
+        </button>
       </header>
 
-      {/* CONTENIDO PRINCIPAL: CATÁLOGO + CARRITO */}
       <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* COLUMNA IZQUIERDA Y CENTRO: MENÚ DE PRODUCTOS */}
         <div className="lg:col-span-2 space-y-6">
           <div>
             <h1 className="text-3xl font-black font-serif text-[#2C221E]">Menú de Especialidad</h1>
@@ -109,7 +88,7 @@ export default function ClientCatalog() {
                     <span className="font-black text-base text-[#E05600]">${p.precio.toFixed(2)}</span>
                   </div>
                   <h3 className="font-bold text-base text-neutral-800 group-hover:text-[#E05600] transition-colors">{p.nombre}</h3>
-                  <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{p.desc}</p>
+                  <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{p.desc || 'Producto fresco preparado al momento.'}</p>
                 </div>
 
                 <button 
@@ -124,14 +103,12 @@ export default function ClientCatalog() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: RESUMEN Y CHECKOUT */}
         <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-lg h-fit sticky top-24 space-y-6">
           <div className="flex items-center space-x-2 border-b border-neutral-100 pb-4">
             <ShoppingCart size={20} className="text-[#E05600]" />
             <h2 className="font-black text-lg text-neutral-900">Tu Pedido</h2>
           </div>
 
-          {/* Selector Tipo de Entrega */}
           <div>
             <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">Tipo de Entrega</label>
             <div className="grid grid-cols-2 gap-2">
@@ -163,7 +140,6 @@ export default function ClientCatalog() {
             </div>
           </div>
 
-          {/* Alerta de Regla de Envío Gratis */}
           {tipoEntrega === 'DELIVERY' && (
             <div className={`p-3 rounded-xl text-xs font-semibold flex items-center space-x-2 ${
               subtotal >= 50.00 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-orange-50 text-[#E05600] border border-orange-200'
@@ -177,7 +153,6 @@ export default function ClientCatalog() {
             </div>
           )}
 
-          {/* Lista de Ítems en el Carrito */}
           <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
             {cart.length === 0 ? (
               <p className="text-center text-xs text-neutral-400 py-6">Tu carrito está vacío.</p>
@@ -199,7 +174,6 @@ export default function ClientCatalog() {
             )}
           </div>
 
-          {/* Dirección si es Delivery */}
           {tipoEntrega === 'DELIVERY' && (
             <div>
               <label className="block text-xs font-bold uppercase text-neutral-500 mb-1">Dirección de Entrega</label>
@@ -213,7 +187,6 @@ export default function ClientCatalog() {
             </div>
           )}
 
-          {/* Totales */}
           <div className="border-t border-neutral-100 pt-4 space-y-1.5 text-xs">
             <div className="flex justify-between text-neutral-600">
               <span>Subtotal:</span>
@@ -237,7 +210,6 @@ export default function ClientCatalog() {
             Confirmar y Pagar
           </button>
         </div>
-
       </div>
     </div>
   );

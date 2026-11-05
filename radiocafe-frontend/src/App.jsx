@@ -1,44 +1,52 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProductProvider } from './context/ProductContext';
 import Home from './pages/Home';
-import AdminDashboard from './pages/AdminDashboard';
 import ClientCatalog from './pages/ClientCatalog';
+import AdminDashboard from './pages/AdminDashboard';
+
+function ProtectedRoute({ children, requiredRole }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/catalogo" replace />;
+  }
+
+  return children;
+}
 
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Ruta Pública: Landing Page e Inicio de Sesión */}
-          <Route path="/" element={<Home />} />
-
-          {/* Ruta Protegida: Acceso para Clientes y Administradores */}
-          <Route 
-            path="/catalogo" 
-            element={
-              <ProtectedRoute allowedRoles={['CLIENTE', 'ADMIN']}>
-                <ClientCatalog />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Ruta Protegida EXCLUSIVA: Bloquea clientes no autorizados */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Redirección por defecto si escriben una ruta inexistente */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+      <ProductProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route 
+              path="/catalogo" 
+              element={
+                <ProtectedRoute>
+                  <ClientCatalog />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ProductProvider>
     </AuthProvider>
   );
 }

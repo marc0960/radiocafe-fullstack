@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../context/ProductContext';
 import { 
   ShoppingBag, 
   Trophy, 
@@ -17,16 +18,8 @@ import {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'kappu'
-
-  // ==========================================
-  // 1. MÓDULO GESTIÓN DE CATÁLOGO DE PRODUCTOS
-  // ==========================================
-  const [productos, setProductos] = useState([
-    { id: 1, nombre: 'Flat White', categoria: 'CAFE', precio: 4.50, estado: 'Disponible' },
-    { id: 2, nombre: 'Cold Brew', categoria: 'CAFE', precio: 5.00, estado: 'Disponible' },
-    { id: 3, nombre: 'Croissant Mantequilla', categoria: 'PASTELERIA', precio: 3.50, estado: 'Disponible' }
-  ]);
+  const { productos, agregarProducto, eliminarProducto } = useProducts();
+  const [activeTab, setActiveTab] = useState('catalog');
 
   const [nombreProducto, setNombreProducto] = useState('');
   const [categoria, setCategoria] = useState('CAFE');
@@ -41,73 +34,41 @@ export default function AdminDashboard() {
       nombre: nombreProducto,
       categoria,
       precio: parseFloat(precio),
+      desc: 'Nuevo producto agregado por el Administrador.',
       estado: 'Disponible'
     };
 
-    setProductos([...productos, nuevo]);
+    agregarProducto(nuevo);
     setNombreProducto('');
     setPrecio('');
   };
 
-  const handleEliminarProducto = (id) => {
-    setProductos(productos.filter(p => p.id !== id));
-  };
-
-  // ==========================================
-  // 2. MÓDULO CONCURSO KAPPU (SELECCIÓN ÚNICA)
-  // ==========================================
-  const [participantes, setParticipantes] = useState([
-    { 
-      id: 'KAPPU-01', 
-      titulo: 'Kappu Tomando Espresso', 
-      autor: 'Lucía M.', 
-      votos: 142, 
-      img: '/assets/kappu-mascota.png',
-      codigo: 'KAPPU-WIN-IIRAB1'
-    },
-    { 
-      id: 'KAPPU-02', 
-      titulo: 'Kappu en la Estación de Radio', 
-      autor: 'Carlos R.', 
-      votos: 98, 
-      img: '/assets/kappu-mascota.png',
-      codigo: 'KAPPU-WIN-3FUN4V'
-    },
-    { 
-      id: 'KAPPU-03', 
-      titulo: 'Zorrito Kappu Neón', 
-      autor: 'Elena P.', 
-      votos: 85, 
-      img: '/assets/kappu-mascota.png',
-      codigo: 'KAPPU-WIN-0LT50T'
-    }
+  const [participantes] = useState([
+    { id: 'KAPPU-01', titulo: 'Kappu Tomando Espresso', autor: 'Lucía M.', votos: 142, img: '/assets/kappu-mascota.png', codigo: 'KAPPU-WIN-IIRAB1' },
+    { id: 'KAPPU-02', titulo: 'Kappu en la Estación de Radio', autor: 'Carlos R.', votos: 98, img: '/assets/kappu-mascota.png', codigo: 'KAPPU-WIN-3FUN4V' },
+    { id: 'KAPPU-03', titulo: 'Zorrito Kappu Neón', autor: 'Elena P.', votos: 85, img: '/assets/kappu-mascota.png', codigo: 'KAPPU-WIN-0LT50T' }
   ]);
 
-  // Selección borrador y ganador oficial confirmado
   const [selectedCandidateId, setSelectedCandidateId] = useState(null);
   const [confirmedWinnerId, setConfirmedWinnerId] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Seleccionar candidato borrador (Solo 1 a la vez)
   const handleSelectCandidate = (id) => {
-    if (confirmedWinnerId) return; // Si ya se confirmó, bloquear cambios
+    if (confirmedWinnerId) return;
     setSelectedCandidateId(id);
   };
 
-  // Confirmar Ganador Oficial
   const handleConfirmWinner = () => {
     if (!selectedCandidateId) return;
     setConfirmedWinnerId(selectedCandidateId);
     setShowConfirmModal(false);
   };
 
-  // Resetear selección en caso de error o reiniciar concurso
   const handleResetWinner = () => {
     setConfirmedWinnerId(null);
     setSelectedCandidateId(null);
   };
 
-  // Cierre de Sesión Seguro
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -115,11 +76,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-neutral-100 flex font-sans text-neutral-800">
-      
-      {/* SIDEBAR LATERAL NAVEGACIÓN */}
       <aside className="w-64 bg-[#2C221E] text-white flex flex-col justify-between shrink-0 shadow-xl">
         <div>
-          {/* Logo Brand */}
           <div className="p-6 flex items-center space-x-3 border-b border-neutral-700">
             <img 
               src="/assets/logo-radiocafe.png" 
@@ -130,14 +88,11 @@ export default function AdminDashboard() {
             <span className="font-extrabold text-sm tracking-wider uppercase text-orange-400">ADMIN PANEL</span>
           </div>
 
-          {/* Menú de Opciones */}
           <nav className="p-4 space-y-2">
             <button 
               onClick={() => setActiveTab('catalog')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-                activeTab === 'catalog' 
-                  ? 'bg-[#E05600] text-white shadow-md' 
-                  : 'text-neutral-300 hover:bg-white/10 hover:text-white'
+                activeTab === 'catalog' ? 'bg-[#E05600] text-white shadow-md' : 'text-neutral-300 hover:bg-white/10 hover:text-white'
               }`}
             >
               <ShoppingBag size={18} />
@@ -147,9 +102,7 @@ export default function AdminDashboard() {
             <button 
               onClick={() => setActiveTab('kappu')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
-                activeTab === 'kappu' 
-                  ? 'bg-[#E05600] text-white shadow-md' 
-                  : 'text-neutral-300 hover:bg-white/10 hover:text-white'
+                activeTab === 'kappu' ? 'bg-[#E05600] text-white shadow-md' : 'text-neutral-300 hover:bg-white/10 hover:text-white'
               }`}
             >
               <Trophy size={18} />
@@ -158,7 +111,6 @@ export default function AdminDashboard() {
           </nav>
         </div>
 
-        {/* Botón Salir */}
         <div className="p-4 border-t border-neutral-700">
           <button 
             onClick={handleLogout}
@@ -170,10 +122,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* ÁREA DE CONTENIDO PRINCIPAL */}
       <main className="flex-1 p-8 overflow-y-auto">
-        
-        {/* VISTA 1: GESTIÓN DE CATÁLOGO */}
         {activeTab === 'catalog' && (
           <div className="space-y-8 max-w-5xl mx-auto">
             <div>
@@ -181,7 +130,6 @@ export default function AdminDashboard() {
               <p className="text-xs text-neutral-500 mt-1">Agrega, modifica o deshabilita artículos del menú público.</p>
             </div>
 
-            {/* Formulario Agregar Producto */}
             <form onSubmit={handleAgregarProducto} className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div className="md:col-span-2">
                 <label className="block text-[10px] font-extrabold uppercase text-neutral-500 mb-1">Nombre Producto</label>
@@ -229,7 +177,6 @@ export default function AdminDashboard() {
               </div>
             </form>
 
-            {/* Tabla de Productos */}
             <div className="bg-white rounded-3xl border border-neutral-200 shadow-sm overflow-hidden">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -261,7 +208,7 @@ export default function AdminDashboard() {
                           <Edit size={14} />
                         </button>
                         <button 
-                          onClick={() => handleEliminarProducto(p.id)}
+                          onClick={() => eliminarProducto(p.id)}
                           className="p-1.5 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
                         >
                           <Trash2 size={14} />
@@ -275,7 +222,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* VISTA 2: JURADO CONCURSO KAPPU (SELECCIÓN ÚNICA CON CONFIRMACIÓN) */}
         {activeTab === 'kappu' && (
           <div className="space-y-6 max-w-6xl mx-auto">
             <div className="flex justify-between items-end">
@@ -286,7 +232,6 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              {/* Botón de Confirmación Submit */}
               {selectedCandidateId && !confirmedWinnerId && (
                 <button 
                   onClick={() => setShowConfirmModal(true)}
@@ -307,7 +252,6 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Tarjetas de Participantes */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {participantes.map((item) => {
                 const isSelected = selectedCandidateId === item.id;
@@ -326,7 +270,6 @@ export default function AdminDashboard() {
                     }`}
                   >
                     <div>
-                      {/* Imagen con badge */}
                       <div className="bg-[#FFF8F0] rounded-2xl p-4 mb-4 flex justify-center items-center relative overflow-hidden">
                         <img 
                           src={item.img} 
@@ -344,7 +287,6 @@ export default function AdminDashboard() {
                       <p className="text-xs text-neutral-500 mb-4">Por: {item.autor}</p>
                     </div>
 
-                    {/* Estado visual de selección */}
                     <div className="mt-2">
                       {isConfirmed ? (
                         <div className="bg-green-100 border border-green-300 text-green-800 p-3 rounded-2xl text-center space-y-1">
@@ -374,10 +316,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
       </main>
 
-      {/* MODAL DE CONFIRMACIÓN SUBMIT DE GANADOR */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-orange-100 shadow-2xl space-y-4">
@@ -389,8 +329,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-neutral-600 leading-relaxed">
               Estás a punto de nombrar como ganador oficial a: <strong className="text-neutral-900">
                 {participantes.find(p => p.id === selectedCandidateId)?.titulo}
-              </strong>. 
-              Esta acción emitirá el código de canje para el concurso Kappu.
+              </strong>.
             </p>
 
             <div className="flex space-x-3 pt-2">
@@ -410,7 +349,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
