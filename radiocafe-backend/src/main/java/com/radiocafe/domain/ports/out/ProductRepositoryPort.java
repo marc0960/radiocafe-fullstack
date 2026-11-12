@@ -1,9 +1,9 @@
 package com.radiocafe.domain.ports.out;
 
-import com.radiocafe.domain.model.Producto;
-
 import java.util.List;
 import java.util.Optional;
+
+import com.radiocafe.domain.model.Producto;
 
 public interface ProductRepositoryPort {
 
