@@ -1,0 +1,42 @@
+# =============================================
+# RADIOCAFE FULLSTACK - .gitignore
+# =============================================
+
+# ---- BACKEND: Java / Maven ----
+radiocafe-backend/target/
+radiocafe-backend/.mvn/timing.properties
+radiocafe-backend/*.jar
+radiocafe-backend/*.war
+*.class
+
+# IDEs Java
+.idea/
+*.iml
+*.iws
+*.ipr
+.settings/
+.classpath
+.project
+.factorypath
+.springBeans
+
+# ---- FRONTEND: Node / Vite ----
+radiocafe-frontend/node_modules/
+radiocafe-frontend/dist/
+radiocafe-frontend/.vite/
+radiocafe-frontend/.env
+radiocafe-frontend/.env.local
+radiocafe-frontend/.env.production
+
+# ---- Sistema Operativo ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Logs ----
+*.log
+npm-debug.log*
+
+# ---- Archivos sensibles ----
+*.env
+*.properties.local
