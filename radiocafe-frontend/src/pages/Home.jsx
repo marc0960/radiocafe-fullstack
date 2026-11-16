@@ -6,6 +6,11 @@ import { ArrowUpRight, User, Coffee, Lock, Mail, AlertCircle, X } from 'lucide-r
 export default function Home() {
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  const enterAsRole = (role, path) => {
+    login({ email: `${role.toLowerCase()}@radiocafe.com`, role });
+    navigate(path);
+  };
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -163,6 +168,34 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Accesos por perfil */}
+      <section className="max-w-6xl mx-auto py-14 px-6">
+        <div className="text-center mb-8">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#E05600] mb-2">Bienvenido a RadioCafé</p>
+          <h2 className="text-3xl font-bold font-serif text-[#2C221E]">¿Cómo quieres ingresar?</h2>
+          <p className="text-neutral-600 mt-2">Elige tu espacio para continuar.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <button onClick={() => enterAsRole('CLIENTE', '/catalogo')} className="text-left bg-white border border-orange-100 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-[#E05600] transition-all">
+            <span className="text-3xl" aria-hidden="true">☕</span>
+            <h3 className="text-xl font-bold mt-3 text-[#2C221E]">Cliente</h3>
+            <p className="text-sm text-neutral-600 mt-2">Explora el catálogo y realiza tus pedidos.</p>
+            <span className="inline-block mt-5 text-sm font-bold text-[#E05600]">Ingresar al catálogo →</span>
+          </button>
+          <button onClick={() => enterAsRole('ADMIN', '/admin')} className="text-left bg-white border border-orange-100 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-[#E05600] transition-all">
+            <span className="text-3xl" aria-hidden="true">⚙️</span>
+            <h3 className="text-xl font-bold mt-3 text-[#2C221E]">Administrador</h3>
+            <p className="text-sm text-neutral-600 mt-2">Gestiona productos y operaciones del café.</p>
+            <span className="inline-block mt-5 text-sm font-bold text-[#E05600]">Abrir administración →</span>
+          </button>
+          <button onClick={() => enterAsRole('BARTENDER', '/bartender')} className="text-left bg-white border border-orange-100 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-[#E05600] transition-all">
+            <span className="text-3xl" aria-hidden="true">🧑‍🍳</span>
+            <h3 className="text-xl font-bold mt-3 text-[#2C221E]">Bartender</h3>
+            <p className="text-sm text-neutral-600 mt-2">Consulta y actualiza las comandas en barra.</p>
+            <span className="inline-block mt-5 text-sm font-bold text-[#E05600]">Abrir comandas →</span>
+          </button>
+        </div>
+      </section>
       {/* 3. VISTA PREVIA RÁPIDA DEL CATÁLOGO */}
       <section className="max-w-6xl mx-auto py-16 px-6">
         <div className="text-center mb-10">

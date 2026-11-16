@@ -1,36 +1,81 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ProductContext = createContext();
-
-const initialProducts = [
-  { id: 1, nombre: 'Flat White Doble', categoria: 'CAFE', precio: 4.50, desc: 'Doble shot de espresso de especialidad con leche texturizada.', estado: 'Disponible' },
-  { id: 2, nombre: 'Cold Brew Radio', categoria: 'CAFE', precio: 5.00, desc: 'Extracción en frío de 18 hrs con notas cítricas y dulces.', estado: 'Disponible' },
-  { id: 3, nombre: 'Croissant Mantequilla', categoria: 'PASTELERIA', precio: 3.50, desc: 'Clásico hojaldre francés recién horneado.', estado: 'Disponible' },
-  { id: 4, nombre: 'Combo Desayuno Sintonía', categoria: 'COMBO', precio: 12.00, desc: 'Café a elección + Sandwich de jamón artesanal + Jugo natural.', estado: 'Disponible' },
-  { id: 5, nombre: 'Bolsa Café en Grano 250g', categoria: 'CAFE', precio: 18.00, desc: 'Granos selección especial origen Villa Rica.', estado: 'Disponible' },
-  { id: 6, nombre: 'Cheesecake Frutos Rojos', categoria: 'PASTELERIA', precio: 6.50, desc: 'Cremoso pastel con mermelada artesanal.', estado: 'Disponible' }
-];
+const API_URL = 'http://localhost:8080/api/productos';
 
 export const ProductProvider = ({ children }) => {
-  const [productos, setProductos] = useState(() => {
-    const saved = localStorage.getItem('radiocafe_products');
-    return saved ? JSON.parse(saved) : initialProducts;
+  const [productos, setProductos] = useState([]);
+
+  // Normaliza los campos de PostgreSQL para que tu diseño original siga funcionando igual
+  const mapearProducto = (p) => ({
+    id: p.id,
+    nombre: p.nombre,
+    categoria: p.categoria,
+    precio: Number(p.precio),
+    desc: p.descripcion || 'Nuevo producto agregado por el Administrador.',
+    imagenUrl: p.imagenUrl || null,
+    insumosReceta: p.insumosReceta || '',
+    estado: p.disponible === false ? 'Agotado' : 'Disponible',
   });
 
-  useEffect(() => {
-    localStorage.setItem('radiocafe_products', JSON.stringify(productos));
-  }, [productos]);
-
-  const agregarProducto = (nuevo) => {
-    setProductos((prev) => [nuevo, ...prev]);
+  const cargarProductos = async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error('Error al obtener productos');
+      const data = await res.json();
+      setProductos(data.map(mapearProducto));
+    } catch (error) {
+      console.error('Error conectando con PostgreSQL:', error);
+    }
   };
 
-  const eliminarProducto = (id) => {
-    setProductos((prev) => prev.filter((p) => p.id !== id));
+  useEffect(() => {
+    cargarProductos();
+  }, []);
+
+  // Soporta subida con imagen (FormData) y recetas de insumos de café
+  const agregarProducto = async (nuevo) => {
+    try {
+      const formData = new FormData();
+      formData.append('nombre', nuevo.nombre);
+      formData.append('descripcion', nuevo.desc || nuevo.descripcion || 'Nuevo producto agregado por el Administrador.');
+      formData.append('precio', nuevo.precio);
+      formData.append('categoria', nuevo.categoria);
+
+      if (nuevo.insumosReceta) {
+        formData.append('insumosReceta', nuevo.insumosReceta);
+      }
+      if (nuevo.imagenFile) {
+        formData.append('imagen', nuevo.imagenFile);
+      }
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Error al guardar producto en PostgreSQL');
+      const creado = await res.json();
+      setProductos((prev) => [mapearProducto(creado), ...prev]);
+      return creado;
+    } catch (error) {
+      console.error('Error creando producto:', error);
+      alert('No se pudo guardar el producto en la base de datos.');
+    }
+  };
+
+  const eliminarProducto = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Error al eliminar');
+      setProductos((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error('Error eliminando producto:', error);
+    }
   };
 
   return (
-    <ProductContext.Provider value={{ productos, agregarProducto, eliminarProducto }}>
+    <ProductContext.Provider value={{ productos, agregarProducto, eliminarProducto, cargarProductos }}>
       {children}
     </ProductContext.Provider>
   );
